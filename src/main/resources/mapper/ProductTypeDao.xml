@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aishang.dao.IProductTypeDao">
+    <resultMap id="ProductTypeList" type="ProductTypeListSp">
+        <id column="cid" property="cid"></id>
+    <result column="cname" property="cname"></result>
+    <collection property="productSuperList" ofType="ProductSecondType">
+        <id column="csid" property="csid"></id>
+        <result column="csname" property="csname"></result>
+        <result column="cid" property="cid"></result>
+    </collection>
+    </resultMap>
+    <select id="selectProductTypeList" resultMap="ProductTypeList">
+        select category.*,categorysecond.*
+        from category LEFT JOIN categorysecond
+        on category.cid=categorysecond.cid
+    </select>
+
+    <resultMap id="reachedProductList" type="ProductInfmation">
+        <id property="pid" column="pid"></id>
+        <result property="pname" column="pname"></result>
+        <result property="marketPrice" column="market_price"></result>
+        <result property="shopPrice" column="shop_price"></result>
+        <result property="image" column="image"></result>
+        <result property="pDesc" column="pdesc"></result>
+        <result property="isHot" column="is_hot"></result>
+        <result property="pDate" column="pdate"></result>
+        <result property="cSid" column="csid"></result>
+        <result property="pdel" column="pdel"></result>
+    </resultMap>
+    <resultMap id="hotBotLists" type="HotBot">
+            <id property="hotId" column="hot_id"></id>
+            <result property="hotBot" column="hot_bot"></result>
+            <result property="sort" column="sort"></result>
+    </resultMap>
+    <select id="selectProductByCsId" parameterType="Integer" resultMap="reachedProductList">
+    select * from product where csid=#{csid}
+    limit 0,6
+    </select>
+
+    <select id="searchProduct" parameterType="SearchProduct" resultMap="reachedProductList">
+    select product.*
+    from category INNER JOIN categorysecond
+    on category.cid=categorysecond.cid INNER JOIN product
+    on categorysecond.csid=product.csid
+    <where>
+        <if test="cid!=null" >
+            and category.cid=#{cid}
+        </if>
+        <if test="csid!=null">
+            and categorysecond.csid=#{csid}
+        </if>
+        <if test="pname!=null">
+            and product.pname like CONCAT('%',#{pname},'%')
+        </if>
+        <if test="pdel!=null">
+            and product.pdel=0
+        </if>
+    </where>
+        limit #{star},#{pageSize}
+    </select>
+
+    <select id="getProductRowCount" parameterType="SearchProduct" resultType="Integer">
+    select count(0)
+    from category INNER JOIN categorysecond
+    on category.cid=categorysecond.cid INNER JOIN product
+    on categorysecond.csid=product.csid
+        <where>
+            <if test="cid!=null" >
+                and category.cid=#{cid}
+            </if>
+            <if test="csid!=null">
+                and categorysecond.csid=#{csid}
+            </if>
+            <if test="pname!=null">
+                and product.pname like CONCAT('%',#{pname},'%')
+            </if>
+            <if test="pdel!=null">
+                and product.pdel=0
+            </if>
+        </where>
+    </select>
+    <select id="getOneProduct" parameterType="ProductInfmation" resultMap="reachedProductList">
+        select * from  product where pid=#{pid};
+    </select>
+
+    <select id="getHotBotList" resultMap="hotBotLists">
+        select * from hot_bot order by sort desc
+    </select>
+
+</mapper>
