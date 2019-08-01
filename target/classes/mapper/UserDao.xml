@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IUserDao接口方法提供sql语句配置 -->
+<mapper namespace="com.aishang.dao.IUserDao">
+    <!--用户注册-查询注册的用户名是否已存在-->
+    <select id="selectUserByUserName" resultType="User" parameterType="String">
+        SELECT username as userName,password as passWord,uid,name,email,phone,addr,state,code from user where username=#{userName}
+    </select>
+    <!--用户注册-成功注册后的添加用户-->
+    <insert id="insertUser" parameterType="User">
+        insert into user values(default,#{userName},#{passWord},#{name},#{email},#{phone},#{addr},#{state},#{code});
+    </insert>
+    <select id="selectUserByPassWord" parameterType="User" resultType="User">
+    select * from user where userName=#{userName} and passWord=#{passWord};
+    </select>
+    <update id="updateUserInformation" parameterType="User">
+        update user set username=#{userName},password=#{passWord},name=#{name},phone=#{phone},addr=#{addr},email=#{email}
+        where username=#{userName}
+    </update>
+</mapper>

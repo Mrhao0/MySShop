@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aishang.dao.IOrderDao">
+    <resultMap id="orderExt" type="OrdersExt">
+        <id column="oid" property="oid"></id>
+        <result column="total" property="total"></result>
+        <result column="ordertime" property="ordertime"></result>
+        <result column="state" property="state"></result>
+        <result column="name" property="name"></result>
+        <result column="phone" property="phone"></result>
+        <result column="addr" property="addr"></result>
+        <result column="uid" property="uid"></result>
+        <result column="odel" property="odel"></result>
+        <collection property="orderItemExts" ofType="OrderItemExt">
+            <id property="itemid" column="itemid"></id>
+            <result property="count" column="count"></result>
+            <result property="subtotal" column="subtotal"></result>
+            <result property="pid" column="pid"></result>
+            <result property="oid" column="oid"></result>
+            <association property="productInfmation" javaType="ProductInfmation">
+                <id property="pid" column="pid"></id>
+                <result property="pname" column="pname"></result>
+                <result property="marketPrice" column="market_price"></result>
+                <result property="shopPrice" column="shop_price"></result>
+                <result property="image" column="image"></result>
+                <result property="pDesc" column="pdesc"></result>
+                <result property="isHot" column="is_hot"></result>
+                <result property="pDate" column="pdate"></result>
+                <result property="cSid" column="csid"></result>
+                <result property="pdel" column="pdel"></result>
+            </association>
+        </collection>
+    </resultMap>
+    <insert id="insertOrderForm" parameterType="OrdersExt">
+        <selectKey keyColumn="oid" keyProperty="oid" resultType="Integer" order="AFTER">
+        select last_insert_id();
+        </selectKey>
+        insert into orders values(default,#{total},#{ordertime},#{state},#{name},#{phone},#{addr},#{uid},default);
+    </insert>
+    <insert id="insertOrderItem" parameterType="OrderItemExt">
+        insert into orderitem values(default,#{count},#{subtotal},#{pid},#{oid});
+    </insert>
+    <select id="getAorders" parameterType="OrdersExt" resultMap="orderExt">
+    select *
+    from orders INNER JOIN orderitem
+    on orders.oid=orderitem.oid INNER JOIN product
+    on orderitem.pid=product.pid
+    where orders.oid=#{oid} and orders.odel=0
+    </select>
+    <update id="upDateState" parameterType="OrdersExt">
+        update orders set state=2 where oid=#{oid}
+    </update>
+    
+    <select id="OrderFormList" parameterType="OrderBean" resultMap="orderExt">
+        select *
+        from (
+        select *
+        from orders
+        <where>
+            <if test="uid!=null" >
+                and uid=#{uid}
+            </if>
+            <if test="state!=null">
+                and state=#{state}
+            </if>
+            <if test="odel!=null">
+                and odel=0
+            </if>
+        </where>
+        order by oid desc
+        limit #{star},#{pageSize}
+        ) as orders INNER JOIN orderitem
+        on orders.oid=orderitem.oid INNER JOIN product
+        on orderitem.pid=product.pid
+
+    </select>
+    <select id="getOrderRowCount" resultType="Integer">
+        select count(0) from orders where uid=#{uid} and odel=0
+    </select>
+    <select id="getOlist" resultType="Orders">
+        select *
+        from orders
+        where uid=#{uid} and odel=0
+    </select>
+    <update id="deleteOrder" parameterType="Integer">
+        update orders set odel=1 where oid=#{oid}
+    </update>
+    <update id="signinOrder" parameterType="Integer">
+        update orders set state=4 where oid=#{oid}
+    </update>
+</mapper>
